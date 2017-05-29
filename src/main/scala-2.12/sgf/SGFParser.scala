@@ -6,7 +6,57 @@ import scala.util.parsing.combinator._
   * Author: Dryden Bouamalay
   * Date: 5/26/17
   */
-class SGFParser extends RegexParsers {
+
+
+// TODO: Handle separate encodings and check carriage return
+trait SimpleTextParser extends RegexParsers {
+  override def skipWhitespace: Boolean = false
+
+  def simpleText: Parser[List[String]] = rep(
+    (replaceWhiteSpace | escapeWhiteSpace | escapeChar) | anyChar
+  )
+
+  // TODO: ':' only needs an escape in the compose data type
+  def escapeChar: Parser[String] = (
+    """\\\\""".r ^^ (_ => "\\")
+      | """\\\]""".r ^^ (_ => "]")
+      | """\\\:""".r ^^ (_ => ":")
+      | """\\.""".r ^^ (s => s takeRight 1)
+    )
+
+  def replaceWhiteSpace: Parser[String] = whiteSpace ^^ (_ => " ")
+  def escapeWhiteSpace: Parser[String] = """\\\s""".r ^^ (_ => " ")
+
+  def anyChar: Parser[String] = """[\s\S]""".r
+}
+
+
+// TODO: Handle separate encodings and check carriage return on soft line breaks
+trait TextParser extends RegexParsers {
+  override def skipWhitespace: Boolean = false
+
+  def text: Parser[List[String]] = rep(
+    (softLineBreak | nonNewline | escapeChar) | anyChar
+  )
+
+  // TODO: ':' only needs an escape in the compose data type
+  def escapeChar: Parser[String] = (
+    """\\\\""".r ^^ (_ => "\\")
+      | """\\\]""".r ^^ (_ => "]")
+      | """\\\:""".r ^^ (_ => ":")
+      | """\\.""".r ^^ (s => s takeRight 1)
+    )
+
+  def nonNewline: Parser[String] = """\h""".r ^^ (_ => " ")
+  def softLineBreak: Parser[String] = """\\\n""".r ^^ (_ => " ")
+
+  def anyChar: Parser[String] = """[\s\S]""".r
+}
+
+
+class SGFParser extends RegexParsers
+with TextParser with SimpleTextParser
+{
 
   // EBNF definition for SGF files
   def collection: Parser[Any] = rep1(gametree)
@@ -19,16 +69,16 @@ class SGFParser extends RegexParsers {
   def cValueType: Parser[Any] = valueType | compose
   def valueType: Parser[Any] = (
     none
-    | number
-    | real
-    | double
-    | color
-    | simpleText
-    | text
-    | point
-    | move
-    | stone
-  )
+      | number
+      | real
+      | double
+      | color
+      | simpleText
+      | text
+      | point
+      | move
+      | stone
+    )
 
   // TODO: Double check these regexes
 
@@ -42,23 +92,6 @@ class SGFParser extends RegexParsers {
 
   def double: Parser[String] = """(1|2)""".r
   def color: Parser[String] = """(B|W)""".r
-
-
-  // TODO: Match escape characters and replace instances of \\n with " "
-  //  Random notes:
-  //
-  //  scala> val test2: Regex = """\\\n""".r
-  //  test2: scala.util.matching.Regex = \\\n
-  //
-  //  scala> "\\\n" match { case test2(_*) => "match!" }
-  //  res14: String = match!
-  //
-  //  val thingy: Regex = "[\\\n\\]\\:]".r
-
-
-  def escape = """[\]\\:]"""
-  def simpleText = ???
-  def text = ???
 
   def point = ???
   def move = ???
