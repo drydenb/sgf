@@ -1,0 +1,18 @@
+this is a file to test out matching the Text and SimpleText types in SGF files.
+
+right bracket, colon, and backslash must be escaped with a backslash such as\:
+
+\:, \], \\
+
+the following backslash-newline combinations should be replaced with spaces \
+\
+\
+\
+the rest of the newlines should stay where they are.
+let's test out some weird characters like #$%^ or !~~~//////// ++++.
+
+Let's make sure we preserve other values that are escaped\: \5, \10, \^.
+
+also, all tabs and other whitespace other than line breaks are converted to \
+spaces
+so the following					should all become spaces
