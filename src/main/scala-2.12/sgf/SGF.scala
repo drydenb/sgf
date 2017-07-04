@@ -30,7 +30,7 @@ object SGF extends Serializable {
 
   // TODO: The following may not be sufficient enough for text values
   val simpleText = P( CharPred(_ != ']').rep )
-  val text = P( CharPred(c => c.toString != "]" || c == "\\]").rep )
+  val text = P( CharPred(c => c.toString != "]" || c.toString == "\\]").rep )
 
   val valueType = P(
     text
@@ -62,9 +62,9 @@ object SGF extends Serializable {
   val compose = P( valueType ~ ":" ~ valueType )
 
   def main(args: Array[String]): Unit = {
-//    val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/test.sgf").mkString
-//      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/2015-05-01-8.sgf").mkString
-      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/2015-05-27-13.sgf").mkString
+//    val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/sgf/src/main/resources/test.sgf").mkString
+//      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/sgf/src/main/resources/2015-05-01-8.sgf").mkString
+      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/sgf/src/main/resources/2015-05-27-13.sgf").mkString
 
     //    val Parsed.Failure(expected, idx, extra) = collection.parse(fileString)
 //    println(expected)
