@@ -1,48 +1,36 @@
 package sgf
 
 import java.io.FileReader
-
 import fastparse.WhitespaceApi
-import fastparse.all._
+//import fastparse.all._
 
 /**
   * Author: Dryden Bouamalay
   * Date: 5/27/17
   */
-object SGF {
 
-//  val reader = new FileReader("/Users/icarus/code/scala/go/src/main/resources/2015-05-01-8.sgf")
-//  val sgfParser = new SGFParser
-////    parseAll(collection, reader) match {
-////      case Success(result, _) => result
-////      case NoSuccess(msg, _) => throw new RuntimeException("Parsing Failed:" + msg)
-////    }
-//  sgfParser.parseAll(sgfParser.collection, reader) match {
-//    case sgfParser.Success(res, _) => println("Found value: <<"+ res +">>")
-//    case sgfParser.NoSuccess(msg, _) => println("No match: <<"+ msg +">>")
-//    case _ => println("I did not match")
-//  }
+object SGF extends Serializable {
 
   val White = WhitespaceApi.Wrapper{
     import fastparse.all._
-    CharIn(" \n\t\r").rep
+    NoTrace( CharIn(" \t\n").rep )
   }
 
+  import fastparse.noApi._
   import White._
+
   val collection = P( gametree.rep(1) )
   val gametree: P[Any] = P( "(" ~/ sequence ~ gametree.rep ~ ")" )
   val sequence = P( node.rep(1) )
   val node = P( ";" ~/ property.rep )
-  val property = P( propIndent ~ propValue.rep(1) ).log()
-  val propIndent = P( ucLetter.rep(1) ).log()
-  val propValue = P( "[" ~/ cValueType ~ "]" ).log()
-  val cValueType = P( valueType | compose ).log()
+  val property = P( propIndent ~ propValue.rep(1) )
+  val propIndent = P( ucLetter.rep(1) )
+  val propValue = P( "[" ~/ cValueType ~ "]" )
+  val cValueType = P( valueType | compose )
 
-  // TODO: Figure out handling escape characters and text / simpleText
-  val escapeChar = P( "\\" ~ AnyChar.! )
-  val escapeLineBreak = P( "\\" ~ "\n" | "\\" ~ "\r\n" | "\\" ~ "\r" )
-  val text = P( (escapeLineBreak | escapeChar | CharIn('A' to 'Z', 'a' to 'z')).rep ).log()
-  val simpleText = text
+  // TODO: The following may not be sufficient enough for text values
+  val simpleText = P( CharPred(_ != ']').rep )
+  val text = P( CharPred(c => c.toString != "]" || c == "\\]").rep )
 
   val valueType = P(
     text
@@ -74,12 +62,15 @@ object SGF {
   val compose = P( valueType ~ ":" ~ valueType )
 
   def main(args: Array[String]): Unit = {
-    val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/test.sgf").mkString
-    //    val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/2015-05-01-8.sgf").mkString
-    val Parsed.Failure(expected, idx, extra) = collection.parse(fileString)
-    println(expected)
-    println(idx)
-    println(extra.traced.trace)
+//    val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/test.sgf").mkString
+//      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/2015-05-01-8.sgf").mkString
+      val fileString = scala.io.Source.fromFile("/Users/icarus/code/scala/go/src/main/resources/2015-05-27-13.sgf").mkString
+
+    //    val Parsed.Failure(expected, idx, extra) = collection.parse(fileString)
+//    println(expected)
+//    println(idx)
+//    println(extra.traced.trace)
+    val Parsed.Success(value, successIndex) = collection.parse(fileString)
   }
 
 }
